@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cacimba – WebGIS for Water Resources | ECOGIS</title>
+<meta name="description" content="Cacimba is a web-based GIS that brings springs, rivers and lakes into one interactive map to inventory, monitor and manage water resources. Developed by ECOGIS.">
+<link rel="icon" type="image/svg+xml" href="img/favicon-cacimba.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== ECOGIS colour scheme: change colours here only ===== */
+  :root{
+    --green:#0F6F47;        /* primary (buttons, links) */
+    --green-bright:#1FA952; /* highlight / accent */
+    --mint:#E9F7EF;         /* soft green surfaces */
+    --navy:#151F63;         /* logo navy */
+    --dark:#050906;         /* hero / dark sections */
+    --dark-2:#0A2A1C;
+    --ink:#0B1F17;          /* body text */
+    --muted:#4B5B54;
+    --bg:#FFFFFF;
+    --bg-soft:#F5F7FA;
+    --line:#E3EAE6;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);font:400 16.5px/1.7 "Poppins","Segoe UI",system-ui,-apple-system,Helvetica,Arial,sans-serif}
+  h1,h2,h3{font-weight:600;line-height:1.18;margin:0 0 .5em;color:var(--ink);letter-spacing:-.01em}
+  h1{font-size:clamp(2.1rem,5vw,3.5rem);font-weight:700}
+  h2{font-size:clamp(1.6rem,3.4vw,2.2rem)}
+  h3{font-size:1.1rem}
+  p{margin:0 0 1em}
+  a{color:var(--green)}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+  section{padding:68px 0}
+  .eyebrow{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;color:var(--green);margin-bottom:.9em}
+
+  body[data-lang="en"] .pt, body[data-lang="pt"] .en{display:none !important}
+  a:focus-visible,button:focus-visible{outline:3px solid var(--green-bright);outline-offset:2px}
+
+  /* header */
+  header.top{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+  header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:10px;padding-bottom:10px}
+  .logos{display:flex;align-items:center;gap:18px}
+  .logos img{display:block}
+  .logos .l-ecogis{height:38px;width:auto}
+  .logos .l-cacimba{height:52px;width:auto}
+  .logos .sep{width:1px;height:34px;background:var(--line)}
+  nav.right{display:flex;align-items:center;gap:8px}
+  .chip{padding:8px 16px;border-radius:12px;font-weight:500;font-size:.95rem;text-decoration:none;color:var(--ink)}
+  .chip.on{background:var(--mint);color:var(--ink)}
+  .lang{display:flex;gap:6px;margin-left:6px}
+  .lang button{font:inherit;font-size:.82rem;font-weight:600;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer}
+  .lang button[aria-pressed="true"]{background:var(--green);color:#fff;border-color:var(--green)}
+
+  /* hero */
+  .hero{background:radial-gradient(1200px 500px at 85% 20%,var(--dark-2),transparent 70%),var(--dark);color:#fff;position:relative;overflow:hidden;padding:84px 0 88px}
+  .hero svg.contours{position:absolute;inset:0;width:100%;height:100%;opacity:.35;pointer-events:none}
+  .hero .grid2{position:relative;display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center}
+  .tag{display:inline-block;padding:9px 20px;border-radius:999px;background:#1F2322;border:1px solid #3A423E;color:#E8EEEA;font-size:.9rem;margin-bottom:26px}
+  .hero h1{color:#fff;max-width:19ch}
+  .hero h1 em{font-style:normal;color:var(--green-bright)}
+  .hero p.lead{font-size:1.1rem;max-width:58ch;color:#C9D6CF;font-weight:300}
+  .btns{display:flex;flex-wrap:wrap;gap:12px;margin:32px 0 0}
+  .btn{display:inline-block;padding:14px 28px;border-radius:999px;font-weight:600;text-decoration:none;border:1.5px solid transparent;font-size:.98rem}
+  .btn.primary{background:var(--green-bright);color:#04140C}
+  .btn.primary:hover{background:#2BBE60}
+  .btn.ghost{border-color:#5B6B63;color:#fff}
+  .btn.ghost:hover{background:rgba(255,255,255,.08)}
+  .btn.solid{background:var(--green);color:#fff}
+  .btn.solid:hover{background:#0C5C3B}
+  .float{display:grid;gap:16px;justify-items:start}
+  .float .pill{display:flex;align-items:center;gap:14px;background:rgba(255,255,255,.92);color:var(--ink);border-radius:20px;padding:12px 24px 12px 14px;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .float .pill:nth-child(2){margin-left:48px}
+  .float .pill:nth-child(3){margin-left:20px}
+  .float .pill i{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#CFE3D8}
+  .float svg{width:22px;height:22px}
+
+  .two{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:start}
+  .aside{background:var(--mint);border-radius:18px;padding:26px 28px;border:1px solid #CFE6DA}
+  .aside h3{margin-bottom:.4em}
+  .aside p{margin:0;color:var(--muted)}
+
+  /* photo + screenshot */
+  .side{display:grid;gap:22px}
+  figure.photo{margin:0;border-radius:18px;overflow:hidden;background:var(--mint);border:1px solid #CFE6DA;box-shadow:0 10px 28px rgba(11,31,23,.10)}
+  figure.photo img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover}
+  figure.photo figcaption,figure.shot figcaption{font-size:.85rem;color:var(--muted);padding:12px 18px;line-height:1.5}
+  .showcase{text-align:center}
+  .showcase .intro{max-width:62ch;margin:0 auto 34px;color:var(--muted)}
+  figure.shot{margin:0 auto;max-width:980px}
+  .browser{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 24px 60px rgba(11,31,23,.18)}
+  .browser .bar{display:flex;align-items:center;gap:7px;padding:11px 16px;background:var(--bg-soft);border-bottom:1px solid var(--line)}
+  .browser .bar i{width:11px;height:11px;border-radius:50%;background:#D5DDD9}
+  .browser .bar span{margin-left:10px;flex:1;text-align:left;font-size:.78rem;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:999px;padding:3px 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .browser img{display:block;width:100%;height:auto;background:var(--mint);min-height:220px}
+  .showcase .btns{justify-content:center}
+
+  .wq{display:grid;grid-template-columns:.95fr 1.05fr;gap:44px;align-items:center}
+  .wq ul{list-style:none;margin:1.4em 0 0;padding:0;display:grid;gap:14px}
+  .wq li{display:flex;gap:14px;align-items:flex-start;background:var(--mint);border:1px solid #CFE6DA;border-radius:14px;padding:14px 18px}
+  .wq li b{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:var(--green);color:#fff;font-size:.9rem;font-weight:600}
+  .wq li span{color:var(--ink);font-size:.95rem;line-height:1.55}
+
+  .grid{display:grid;gap:18px}
+  .grid.f{grid-template-columns:repeat(3,1fr)}
+  .grid.a{grid-template-columns:repeat(2,1fr)}
+  .card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px}
+  .card p{margin:0;color:var(--muted);font-size:.94rem}
+  .ico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:var(--mint);margin-bottom:14px}
+  .ico svg{width:24px;height:24px}
+
+  .steps{counter-reset:s;display:grid;grid-template-columns:repeat(3,1fr);gap:18px;padding:0;margin:0;list-style:none}
+  .steps li{counter-increment:s;background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px}
+  .steps li::before{content:counter(s);display:grid;place-items:center;width:38px;height:38px;border-radius:50%;background:var(--green);color:#fff;font-weight:600;margin-bottom:14px}
+  .steps p{margin:0;color:var(--muted);font-size:.94rem}
+
+  .alt{background:var(--bg-soft)}
+  .cta{background:var(--dark);color:#fff;text-align:center;padding:72px 0}
+  .cta h2{color:#fff}
+  .cta p{color:#C9D6CF;max-width:56ch;margin:0 auto 1.4em;font-weight:300}
+
+  footer{background:var(--bg-soft);border-top:1px solid var(--line);color:var(--muted);font-size:.9rem;padding:30px 0}
+  footer .wrap{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px}
+  footer .logos img.l-ecogis{height:34px}
+  footer .logos img.l-cacimba{height:40px}
+  footer a{color:var(--green);font-weight:500}
+
+  @media (max-width:860px){
+    section{padding:48px 0}
+    .hero{padding:52px 0 56px}
+    .hero .grid2,.two,.wq,.grid.f,.grid.a,.steps{grid-template-columns:1fr}
+    .float .pill:nth-child(2),.float .pill:nth-child(3){margin-left:0}
+    .logos .l-ecogis{height:30px}.logos .l-cacimba{height:36px}.logos{gap:12px}
+    .chip{display:none}
+  }
+</style>
+</head>
+<body data-lang="en">
+
+<header class="top">
+  <div class="wrap">
+    <a class="logos" href="#top" aria-label="ECOGIS · Cacimba" style="text-decoration:none">
+      <img class="l-ecogis" src="img/logo-ecogis.png" alt="ECOGIS">
+      <span class="sep" aria-hidden="true"></span>
+      <img class="l-cacimba" src="img/logo-cacimba.png" alt="Cacimba – WebGIS ECOGIS">
+    </a>
+    <nav class="right">
+      <a class="chip on" href="#top"><span class="en">Overview</span><span class="pt">Visão geral</span></a>
+      <a class="chip" href="#field-data"><span class="en">Field data</span><span class="pt">Dados de campo</span></a>
+      <a class="chip" href="#features"><span class="en">Features</span><span class="pt">Funcionalidades</span></a>
+      <a class="chip" href="#applications"><span class="en">Applications</span><span class="pt">Aplicações</span></a>
+      <div class="lang" role="group" aria-label="Language / Idioma">
+        <button type="button" data-set="en" aria-pressed="true">EN</button>
+        <button type="button" data-set="pt" aria-pressed="false">PT</button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<div class="hero">
+  <svg class="contours" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true" fill="none" stroke="#1FA952" stroke-width="1">
+    <path d="M-20 420 C200 340 340 460 560 380 S900 300 1220 360" opacity=".5"/>
+    <path d="M-20 380 C200 300 340 420 560 340 S900 260 1220 320" opacity=".4"/>
+    <path d="M-20 340 C200 260 340 380 560 300 S900 220 1220 280" opacity=".3"/>
+    <path d="M-20 300 C200 220 340 340 560 260 S900 180 1220 240" opacity=".25"/>
+    <path d="M-20 260 C200 180 340 300 560 220 S900 140 1220 200" opacity=".2"/>
+    <path d="M-20 220 C200 140 340 260 560 180 S900 100 1220 160" opacity=".15"/>
+  </svg>
+  <div class="wrap grid2">
+    <div>
+      <span class="tag"><span class="en">ECOGIS · Water resources</span><span class="pt">ECOGIS · Recursos hídricos</span></span>
+      <h1>
+        <span class="en">Know where <em>water</em> is, in what condition, and what it is used for.</span>
+        <span class="pt">Saiba onde está a <em>água</em>, em que estado se encontra e para que é usada.</span>
+      </h1>
+      <p class="lead">
+        <span class="en">Cacimba is a web-based geographic information system that brings springs, rivers and lakes together in one interactive map, so that institutions, communities and researchers can inventory water sources, monitor how well they are protected and how clean their water is, and manage them better.</span>
+        <span class="pt">O Cacimba é um sistema de informação geográfica na web que reúne nascentes, rios e lagos num único mapa interativo, para que instituições, comunidades e investigadores possam inventariar as fontes de água, monitorizar o seu nível de proteção e a limpeza da água, e geri-las melhor.</span>
+      </p>
+      <div class="btns">
+        <a class="btn primary" href="https://ecogiscacimbaweb-production.up.railway.app/" target="_blank" rel="noopener"><span class="en">Open the WebGIS</span><span class="pt">Abrir o WebGIS</span></a>
+        <a class="btn ghost" href="#features"><span class="en">See key features</span><span class="pt">Ver funcionalidades</span></a>
+      </div>
+    </div>
+    <div class="float" aria-hidden="true">
+      <div class="pill"><i><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.500 6-11 6-11Z"/></svg></i><span class="en">Springs</span><span class="pt">Nascentes</span></div>
+      <div class="pill"><i><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17c3-4 5 2 9-2s6 2 9-2M3 11c3-4 5 2 9-2s6 2 9-2"/></svg></i><span class="en">Rivers</span><span class="pt">Rios</span></div>
+      <div class="pill"><i><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14c0-4 3.500-7 8-7s8 3 8 7-3.500 5-8 5-8-1-8-5Z"/><path d="M8 14c1.500 1 6.500 1 8 0"/></svg></i><span class="en">Lakes</span><span class="pt">Lagos</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- PURPOSE -->
+<section id="purpose">
+  <div class="wrap two">
+    <div>
+      <p class="eyebrow"><span class="en">Purpose</span><span class="pt">Propósito</span></p>
+      <h2><span class="en">One shared map for water information</span><span class="pt">Um mapa partilhado para a informação sobre a água</span></h2>
+      <p class="en">Information about water sources is often spread across paper records, spreadsheets and local knowledge, which makes it hard to see the full picture or to keep it up to date. Cacimba puts it in one place: a map that anyone with a web browser can use, with no GIS software to install.</p>
+      <p class="pt">A informação sobre as fontes de água está muitas vezes dispersa por registos em papel, folhas de cálculo e conhecimento local, o que dificulta ter uma visão completa ou mantê-la actualizada. O Cacimba reúne-a num só lugar: um mapa que qualquer pessoa pode usar num navegador, sem instalar software de SIG.</p>
+      <p class="en">Cacimba is also a tool to track how water sources are being protected and how clean the water is that communities rely on. Each record notes the type, state (degraded or preserved), use and water quality of a source, so degradation and contamination can be spotted and followed over time.</p>
+      <p class="pt">O Cacimba é também uma ferramenta para acompanhar como as fontes de água estão a ser protegidas e quão limpa é a água de que as comunidades dependem. Cada registo indica o tipo, o estado (degradada ou preservada), o uso e a qualidade da água da fonte, para que a degradação e a contaminação possam ser detetadas e seguidas ao longo do tempo.</p>
+      <p class="en"><strong>Why field data matters:</strong> springs are small and often sit beneath trees, so satellite images cannot capture them reliably. Cacimba lets people on the ground map them, with their exact location and condition, in a single database that all users share.</p>
+      <p class="pt"><strong>Porque os dados de campo importam:</strong> as nascentes são pequenas e ficam muitas vezes debaixo de árvores, pelo que as imagens de satélite não as captam de forma fiável. O Cacimba permite que as pessoas no terreno as cartografem, com a localização exata e o estado, numa única base de dados partilhada por todos os utilizadores.</p>
+    </div>
+    <div class="side">
+      <figure class="photo">
+        <img src="img/spring-degraded.jpg" alt="A degraded spring" data-alt-en="A degraded spring" data-alt-pt="Uma nascente degradada" loading="lazy">
+        <figcaption><span class="en">A degraded spring. Small and often hidden under trees, springs like this are easy to miss from above, so they need to be recorded on the ground.</span><span class="pt">Uma nascente degradada. Pequenas e muitas vezes escondidas debaixo de árvores, nascentes como esta passam despercebidas vistas de cima, por isso precisam de ser registadas no terreno.</span></figcaption>
+      </figure>
+      <aside class="aside">
+        <h3><span class="en">Why “Cacimba”?</span><span class="pt">Porque “Cacimba”?</span></h3>
+        <p class="en">A <em>cacimba</em> is the traditional well that anchors the water supply of many communities in Angola. The name reflects the platform’s focus: knowing, protecting and sharing access to water.</p>
+        <p class="pt">A <em>cacimba</em> é o poço tradicional que sustenta o abastecimento de água de muitas comunidades em Angola. O nome reflete o foco da plataforma: conhecer, proteger e partilhar o acesso à água.</p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOT -->
+<section id="preview" class="showcase alt">
+  <div class="wrap">
+    <p class="eyebrow"><span class="en">See it in action</span><span class="pt">Veja em ação</span></p>
+    <h2><span class="en">The Cacimba WebGIS</span><span class="pt">O WebGIS Cacimba</span></h2>
+    <p class="intro en">Springs, rivers and lakes on a single interactive map, ready to explore from any browser.</p>
+    <p class="intro pt">Nascentes, rios e lagos num único mapa interativo, prontos a explorar a partir de qualquer navegador.</p>
+    <figure class="shot">
+      <div class="browser">
+        <div class="bar" aria-hidden="true"><i></i><i></i><i></i><span>ecogiscacimbaweb-production.up.railway.app</span></div>
+        <img src="img/cacimba-screen.png" alt="Screenshot of the Cacimba WebGIS showing springs, rivers and lakes on the map" data-alt-en="Screenshot of the Cacimba WebGIS showing springs, rivers and lakes on the map" data-alt-pt="Captura de ecrã do WebGIS Cacimba com nascentes, rios e lagos no mapa" loading="lazy">
+      </div>
+    </figure>
+    <div class="btns">
+      <a class="btn solid" href="https://ecogiscacimbaweb-production.up.railway.app/" target="_blank" rel="noopener"><span class="en">Open the WebGIS</span><span class="pt">Abrir o WebGIS</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- WATER QUALITY -->
+<section id="field-data">
+  <div class="wrap wq">
+    <figure class="photo">
+      <img src="img/water-quality.jpg" onerror="if(!this.dataset.t){this.dataset.t=1;this.src='img/water-quality.jpeg'}" alt="Technician measuring water quality at a spring" data-alt-en="Technician measuring water quality at a spring" data-alt-pt="Técnico a medir a qualidade da água numa nascente" loading="lazy">
+      <figcaption><span class="en">A technician measuring water quality at a spring. Rivers and lakes are measured the same way.</span><span class="pt">Um técnico a medir a qualidade da água numa nascente. Os rios e os lagos são medidos da mesma forma.</span></figcaption>
+    </figure>
+    <div>
+      <p class="eyebrow"><span class="en">Field data</span><span class="pt">Dados de campo</span></p>
+      <h2><span class="en">Collected on site, stored with the water source</span><span class="pt">Recolhidos no local, guardados com a fonte de água</span></h2>
+      <p class="en">Knowing that a water source exists is not enough: communities need to know what kind of source it is, whether it is degraded or preserved, what it is used for, and whether its water is safe. Technicians collect this information at springs, rivers and lakes and enter it in Cacimba, where it becomes part of that source’s record.</p>
+      <p class="pt">Saber que uma fonte de água existe não basta: as comunidades precisam de saber de que tipo de fonte se trata, se está degradada ou preservada, para que é usada e se a água é segura. Os técnicos recolhem esta informação em nascentes, rios e lagos e introduzem-na no Cacimba, onde passa a fazer parte do registo dessa fonte.</p>
+      <ul>
+        <li><b>1</b><span class="en"><strong>Collect</strong> the type, state (degraded or preserved) and use, and measure the water quality, at the spring, river or lake during the field visit.</span><span class="pt"><strong>Recolher</strong> o tipo, o estado (degradada ou preservada) e o uso, e medir a qualidade da água, na nascente, rio ou lago durante a visita de campo.</span></li>
+        <li><b>2</b><span class="en"><strong>Save</strong> everything as attributes of that specific spring, river or lake in the shared database.</span><span class="pt"><strong>Guardar</strong> tudo como atributos dessa nascente, rio ou lago específico na base de dados partilhada.</span></li>
+        <li><b>3</b><span class="en"><strong>See</strong> the results in the platform: select the spring, river or lake on the map and its type, state, use and water quality are displayed.</span><span class="pt"><strong>Ver</strong> os resultados na plataforma: selecione a nascente, rio ou lago no mapa e o tipo, o estado, o uso e a qualidade da água são apresentados.</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="alt">
+  <div class="wrap">
+    <p class="eyebrow"><span class="en">Key features</span><span class="pt">Funcionalidades principais</span></p>
+    <h2><span class="en">What you can do with Cacimba</span><span class="pt">O que pode fazer com o Cacimba</span></h2>
+    <div class="grid f">
+
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg></div>
+        <h3><span class="en">Interactive map</span><span class="pt">Mapa interativo</span></h3>
+        <p class="en">Pan and zoom across the region, switch layers on and off, and use the overview map, scale bar and live coordinates to find your way.</p>
+        <p class="pt">Navegue e amplie a região, ligue e desligue camadas e use o mapa de apoio, a escala e as coordenadas para se orientar.</p>
+      </div>
+
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.500 6-11 6-11Z"/></svg></div>
+        <h3><span class="en">Springs, rivers and lakes</span><span class="pt">Nascentes, rios e lagos</span></h3>
+        <p class="en">Three layers: springs as points, rivers as lines and lakes as areas. Springs are colour-coded by state, degraded or preserved.</p>
+        <p class="pt">Três camadas: nascentes como pontos, rios como linhas e lagos como áreas. As nascentes são coloridas conforme o estado, degradada ou preservada.</p>
+      </div>
+
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+        <h3><span class="en">Detailed attributes</span><span class="pt">Atributos detalhados</span></h3>
+        <p class="en">Select a feature to see its type, state (degraded or preserved), use and water quality, all collected in the field and stored as attributes of that spring, river or lake.</p>
+        <p class="pt">Selecione um elemento para ver o tipo, o estado (degradada ou preservada), o uso e a qualidade da água, recolhidos no terreno e guardados como atributos dessa nascente, rio ou lago.</p>
+      </div>
+
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></div>
+        <h3><span class="en">Search by name</span><span class="pt">Pesquisa por nome</span></h3>
+        <p class="en">Find a spring, river or lake directly by name and jump straight to it on the map.</p>
+        <p class="pt">Encontre uma nascente, rio ou lago diretamente pelo nome e vá imediatamente até ele no mapa.</p>
+      </div>
+
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.500 3.500a2.100 2.100 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></div>
+        <h3><span class="en">Add data on the map</span><span class="pt">Registo de dados no mapa</span></h3>
+        <p class="en">Draw a point, line or area, fill in a short form and save. The platform rejects duplicate names to keep records clean.</p>
+        <p class="pt">Desenhe um ponto, linha ou área, preencha um formulário curto e guarde. A plataforma recusa nomes repetidos para manter os registos organizados.</p>
+      </div>
+
+      <div class="card">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="#0F6F47" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.700 3.600 3 8 3s8-1.300 8-3V5"/><path d="M4 11v6c0 1.700 3.600 3 8 3s8-1.300 8-3v-6"/></svg></div>
+        <h3><span class="en">Central spatial database</span><span class="pt">Base de dados espacial central</span></h3>
+        <p class="en">Data is stored in a PostgreSQL/PostGIS spatial database in the cloud, so every user sees the same, up-to-date information.</p>
+        <p class="pt">Os dados ficam numa base de dados espacial PostgreSQL/PostGIS na nuvem, por isso todos os utilizadores veem a mesma informação atualizada.</p>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="wrap">
+    <p class="eyebrow"><span class="en">How it works</span><span class="pt">Como funciona</span></p>
+    <h2><span class="en">From open map to updated record in three steps</span><span class="pt">Do mapa aberto ao registo atualizado em três passos</span></h2>
+    <ol class="steps">
+      <li><h3><span class="en">Explore</span><span class="pt">Explorar</span></h3>
+        <p class="en">Open the WebGIS in any browser and browse the springs, rivers and lakes layers.</p>
+        <p class="pt">Abra o WebGIS em qualquer navegador e percorra as camadas de nascentes, rios e lagos.</p></li>
+      <li><h3><span class="en">Inspect and search</span><span class="pt">Consultar e pesquisar</span></h3>
+        <p class="en">Select any feature to read its attributes, or search for it by name.</p>
+        <p class="pt">Selecione qualquer elemento para ler os seus atributos, ou pesquise-o pelo nome.</p></li>
+      <li><h3><span class="en">Contribute</span><span class="pt">Contribuir</span></h3>
+        <p class="en">Add a new spring, river or lake directly on the map, together with its type, state, use and water quality, and it joins the shared database.</p>
+        <p class="pt">Adicione uma nova nascente, rio ou lago diretamente no mapa, juntamente com o tipo, o estado, o uso e a qualidade da água, e passa a fazer parte da base de dados partilhada.</p></li>
+    </ol>
+  </div>
+</section>
+
+<!-- APPLICATIONS -->
+<section id="applications" class="alt">
+  <div class="wrap">
+    <p class="eyebrow"><span class="en">Practical applications</span><span class="pt">Aplicações práticas</span></p>
+    <h2><span class="en">Where Cacimba helps</span><span class="pt">Onde o Cacimba ajuda</span></h2>
+    <div class="grid a">
+      <div class="card">
+        <h3><span class="en">Water-source inventory</span><span class="pt">Inventário de fontes de água</span></h3>
+        <p class="en">Municipality administration, NGOs and community organisations can keep a single, mapped register of the water sources in their area.</p>
+        <p class="pt">Administrações municipais, ONGs e organizações comunitárias podem manter um registo único e cartografado das fontes de água da sua área.</p>
+      </div>
+      <div class="card">
+        <h3><span class="en">Conservation monitoring</span><span class="pt">Monitorização da conservação</span></h3>
+        <p class="en">Record whether sources are preserved or degraded, what they are used for and how clean their water is, and see at a glance where protection is most needed. Ground-level records capture small springs that satellite images miss.</p>
+        <p class="pt">Registe se as fontes estão preservadas ou degradadas, para que são usadas e quão limpa é a sua água, e veja de relance onde a proteção é mais necessária. Os registos de campo captam nascentes pequenas que as imagens de satélite não detetam.</p>
+      </div>
+      <div class="card">
+        <h3><span class="en">Water access planning</span><span class="pt">Planeamento do acesso à água</span></h3>
+        <p class="en">Understand which sources are used for what, and use the measured water quality of each spring, river and lake to see where it is a concern and support planning decisions.</p>
+        <p class="pt">Perceba que fontes servem que usos e use a qualidade da água medida em cada nascente, rio e lago para ver onde é uma preocupação e apoiar decisões de planeamento.</p>
+      </div>
+      <div class="card">
+        <h3><span class="en">Research and education</span><span class="pt">Investigação e educação</span></h3>
+        <p class="en">Support field surveys, environmental studies and student projects with a ready-to-use, shared spatial dataset.</p>
+        <p class="pt">Apoiar levantamentos de campo, estudos ambientais e trabalhos de estudantes com um conjunto de dados espaciais partilhado e pronto a usar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta">
+  <div class="wrap">
+    <h2><span class="en">Try Cacimba now</span><span class="pt">Experimente o Cacimba</span></h2>
+    <p class="en">The WebGIS is online and ready to explore. No installation or account needed to browse the map.</p>
+    <p class="pt">O WebGIS está online e pronto a explorar. Não é necessária instalação nem conta para consultar o mapa.</p>
+    <a class="btn primary" href="https://ecogiscacimbaweb-production.up.railway.app/" target="_blank" rel="noopener"><span class="en">Open the WebGIS</span><span class="pt">Abrir o WebGIS</span></a>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="logos">
+      <img class="l-ecogis" src="img/logo-ecogis.png" alt="ECOGIS">
+      <span class="sep" aria-hidden="true"></span>
+      <img class="l-cacimba" src="img/logo-cacimba.png" alt="Cacimba – WebGIS ECOGIS">
+    </div>
+    <span>&copy; 2026 ECOGIS. <span class="en">Cacimba is developed by ECOGIS.</span><span class="pt">O Cacimba é desenvolvido pela ECOGIS.</span>
+      &nbsp;<a href="https://ecogis.ao" target="_blank" rel="noopener">ecogis.ao</a></span>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    var btns = document.querySelectorAll('.lang button');
+    function set(l){
+      document.body.setAttribute('data-lang', l);
+      document.documentElement.lang = l;
+      btns.forEach(function(b){ b.setAttribute('aria-pressed', b.getAttribute('data-set') === l ? 'true' : 'false'); });
+      document.querySelectorAll('img[data-alt-en]').forEach(function(i){ i.alt = i.getAttribute('data-alt-' + l); });
+      try { localStorage.setItem('cacimba-lang', l); } catch(e){}
+    }
+    btns.forEach(function(b){ b.addEventListener('click', function(){ set(b.getAttribute('data-set')); }); });
+    try { var s = localStorage.getItem('cacimba-lang'); if (s === 'pt' || s === 'en') set(s); } catch(e){}
+  })();
+</script>
+</body>
+</html>
